@@ -1,2 +1,2 @@
 # neuralnet
-A Neural Network Implementation
+- A Neural Network Implementation
