@@ -58,15 +58,12 @@ class HiddenNeuron(Neuron):
 		for neuron in neurons:
 			weight = random.random()
 			self.neurons_connected.append([weight, neuron])
-	
+
 	def synapse(self):
 		for connection in self.neurons_connected:
 			weight = connection[0]
 			neuron = connection[1]
 			neuron.summation_unit(weight, self.result)
-
-
-
 
 
 class OutputNeuron(Neuron):
