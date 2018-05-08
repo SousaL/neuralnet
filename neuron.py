@@ -4,7 +4,7 @@
 from abc import ABCMeta, abstractmethod
 import random
 import math
-
+import numpy as np
 
 
 
@@ -36,15 +36,16 @@ class InputNeuron(Neuron):
 
 	def synapse(self, input):
 		self.result = input
-		print("W: ", end="")
+		#print("W: ", end="")
 		for connection in self.neurons_connected:
 			weight = connection[0]
 			neuron = connection[1]
+			print("\t to neuron", neuron, " - ", input, " * ", weight)
 			neuron.summation_unit(weight, input)
-			print(round(weight,3)," ", end="")
-		print("")
+		#	print(weight,"\t", end="")
+		#print("")
 
-	def calculate_error(self, momentum, tx_learning):
+	def calculate_error(self):
 		#print("W: ", end="")
 		sum_factor = 0
 		for connection in self.neurons_connected:
@@ -55,11 +56,12 @@ class InputNeuron(Neuron):
 		#print("")
 		self.error = self.result * (1 - self.result) * sum_factor
 
+
+	def update_weights(self, momentum, tx_learning):
 		for connection in self.neurons_connected:
 			weight = connection[0]
 			neuron = connection[1]
-			connection[0] = weight*momentum+tx_learning \
-							* self.result * neuron.error
+			connection[0] = weight+tx_learning*self.result*neuron.error
 
 
 class HiddenNeuron(Neuron):
@@ -68,11 +70,13 @@ class HiddenNeuron(Neuron):
 		self.sum = 0
 
 	def summation_unit(self, weight, data):
-		self.sum = (weight * data) + self.sum
+		self.sum += (weight * data)
+		print("\t\t\t#",weight,"*",data,"=",weight*data," - ",self.sum,"#")
 
 	def transfer_unit(self):
-		print(self.sum)
-		self.result = 1 / (1 + math.exp(-(self.sum)))
+		#self.sum = np.clip(self.sum,-1000,1000)
+		self.result = 1.0 / (1.0 + np.exp(-(self.sum)))
+		print("\ttransfer unit with activant value: ",self.sum, " ", self.result)
 		self.sum = 0
 
 
@@ -88,10 +92,10 @@ class HiddenNeuron(Neuron):
 			weight = connection[0]
 			neuron = connection[1]
 			neuron.summation_unit(weight, self.result)
-		#	print(round(weight,3)," ", end="")
+			#print(weight,"\t", end="")
 		#print("")
 
-	def calculate_error(self, momentum, tx_learning):
+	def calculate_error(self):
 		#print("W: ", end="")
 		sum_factor = 0
 		for connection in self.neurons_connected:
@@ -101,12 +105,14 @@ class HiddenNeuron(Neuron):
 			#print(round(weight,3)," ", end="")
 		#print("")
 		self.error = self.result * (1 - self.result) * sum_factor
+		#print(self.error)
 
+
+	def update_weights(self, momentum, tx_learning):
 		for connection in self.neurons_connected:
 			weight = connection[0]
 			neuron = connection[1]
-			connection[0] = weight*momentum +tx_learning \
-							* self.result * neuron.error
+			connection[0] = weight*momentum+tx_learning*self.result*neuron.error
 
 
 class OutputNeuron(Neuron):
@@ -118,8 +124,10 @@ class OutputNeuron(Neuron):
 		self.sum = (weight * data) + self.sum
 
 	def transfer_unit(self):
-		self.result = 1 / (1 + math.exp(-self.sum))
+		#self.sum = np.clip(self.sum,-1000,1000)
+		self.result = 1 / (1 + np.exp(-self.sum))
 		self.sum = 0
 
 	def calculate_error(self, result_expected):
-		self.error = result_expected - self.result
+		self.error = self.result * (1- self.result) * (result_expected - self.result)
+		#print(self.error)

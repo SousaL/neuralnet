@@ -36,11 +36,23 @@ class NeuralNet:
 			hidden_neuron.add_neurons(self.output_layer)
 			self.hidden_layer.append(hidden_neuron)
 
+		self.hiddens_layers = [self.hidden_layer]
+		if self.NUMBER_OF_LAYERS > 1:
+			for j in range(0, self.NUMBER_OF_LAYERS):
+				new_layer = []
+				for i in range(0, self.NUMBER_HIDDEN_NEURONS):
+					hidden_neuron = HiddenNeuron()
+					hidden_neuron.add_neurons(self.hiddens_layers[-1])
+					new_layer.append(hidden_neuron)
+
+				self.hiddens_layers.append(new_layer)
+
+
 
 		self.input_layer = []
 		for i in range(0, self.NUMBER_INPUT_NEURONS):
 			input_neuron = InputNeuron()
-			input_neuron.add_neurons(self.hidden_layer)
+			input_neuron.add_neurons(self.hiddens_layers[-1])
 			self.input_layer.append(input_neuron)
 
 		print("Created Input Layer:\t", self.NUMBER_INPUT_NEURONS)
@@ -48,39 +60,64 @@ class NeuralNet:
 		print("Created Output Layer:\t", self.NUMBER_OUTPUT_NEURONS)
 
 
-	def propagation(self, data):
+	def propagation(self, data, prediction=False):
 		i = 0
-		print("========= INPUT LAYER =========")
+		#print(data)
+		print("synapse input layer")
 		for input_neuron in self.input_layer:
-			print("n(",i,")=",data[i]," ", end="")
+			#print("n(",i,")=",data[i],"\t", end="")
 			input_neuron.synapse(data[i])
+			#print(input_neuron.result," ", end = "")
 			i+=1
-
+		#print("")
 		i = 0
-		#print("========= HIDDEN LAYER =========")
-		for hidden_neuron in self.hidden_layer:
-			hidden_neuron.transfer_unit()
-			#print("n(",i,")=",hidden_neuron.result," ", end="")
-			hidden_neuron.synapse()
+		print("hidden layer")
+		for hidden_layer in reversed(self.hiddens_layers):
+		#	print("========= HIDDEN LAYER ========= ",i)
+			print("-------------")
+			for hidden_neuron in hidden_layer:
+		#		print("SUM=",hidden_neuron.sum)
+				hidden_neuron.transfer_unit()
+		#		print("n=",hidden_neuron.result,"\t", end="")
+				hidden_neuron.synapse()
 			i+=1
-
+		#	print("")
 		i = 0
-		print("========= OUTPUT LAYER =========")
+		g = 0
+		#print("========= OUTPUT LAYER =========")
 		for output_neuron in self.output_layer:
 			output_neuron.transfer_unit()
-			print("n(",i,")=",round(output_neuron.result,3)," ")
+			print("n(",i,")=",output_neuron.result,"\t", end="")
+			if(output_neuron.result > self.output_layer[g].result):
+				g = i
 			i+=1
+		#print("")
+
+		if(prediction == True):
+			return g
+
 
 	def back_propagation(self,neuron_expected):
-
+		#print("Output error -------")
 		for i in range(0, self.NUMBER_OUTPUT_NEURONS):
-			if(i==neuron_expected):
-				self.output_layer[i].calculate_error(1)
-			else:
+			if(i!=neuron_expected):
 				self.output_layer[i].calculate_error(0)
+			else:
+				self.output_layer[i].calculate_error(1)
 
-		for hidden_neuron in self.hidden_layer:
-			hidden_neuron.calculate_error(self.MOMENTUM, self.TX_LEARNING)
+		#print("Hiden error -------")
+		for hidden_layer in self.hiddens_layers:
+		#	print("h -------")
+			for hidden_neuron in hidden_layer:
+				hidden_neuron.calculate_error()
+
+		#print("Input error -------")
+		for input_neuron in self.input_layer:
+			input_neuron.calculate_error()
 
 		for input_neuron in self.input_layer:
-			input_neuron.calculate_error(self.MOMENTUM, self.TX_LEARNING)
+			input_neuron.update_weights(self.MOMENTUM, self.TX_LEARNING)
+
+		for hidden_layer in reversed(self.hiddens_layers):
+			for hidden_neuron in hidden_layer:
+				hidden_neuron.update_weights(self.MOMENTUM, self.TX_LEARNING)
