@@ -40,7 +40,7 @@ class InputNeuron(Neuron):
 		for connection in self.neurons_connected:
 			weight = connection[0]
 			neuron = connection[1]
-			print("\t to neuron", neuron, " - ", input, " * ", weight)
+		#	print("\t to neuron", neuron, " - ", input, " * ", weight)
 			neuron.summation_unit(weight, input)
 		#	print(weight,"\t", end="")
 		#print("")
@@ -61,8 +61,8 @@ class InputNeuron(Neuron):
 		for connection in self.neurons_connected:
 			weight = connection[0]
 			neuron = connection[1]
-			connection[0] = weight+tx_learning*self.result*neuron.error
-
+			new_weight = weight+tx_learning*self.result*neuron.error
+			connection[0] = new_weight 
 
 class HiddenNeuron(Neuron):
 
@@ -71,12 +71,12 @@ class HiddenNeuron(Neuron):
 
 	def summation_unit(self, weight, data):
 		self.sum += (weight * data)
-		print("\t\t\t#",weight,"*",data,"=",weight*data," - ",self.sum,"#")
+		#print("\t\t\t#",weight,"*",data,"=",weight*data," - ",self.sum,"#")
 
 	def transfer_unit(self):
 		#self.sum = np.clip(self.sum,-1000,1000)
 		self.result = 1.0 / (1.0 + np.exp(-(self.sum)))
-		print("\ttransfer unit with activant value: ",self.sum, " ", self.result)
+		#print("\ttransfer unit with activant value: ",self.sum, " ", self.result)
 		self.sum = 0
 
 
@@ -112,8 +112,8 @@ class HiddenNeuron(Neuron):
 		for connection in self.neurons_connected:
 			weight = connection[0]
 			neuron = connection[1]
-			connection[0] = weight*momentum+tx_learning*self.result*neuron.error
-
+			new_weight = weight*momentum+tx_learning*self.result*neuron.error
+			connection[0] = new_weight
 
 class OutputNeuron(Neuron):
 
@@ -125,9 +125,10 @@ class OutputNeuron(Neuron):
 
 	def transfer_unit(self):
 		#self.sum = np.clip(self.sum,-1000,1000)
+		#self.result = self.sum
 		self.result = 1 / (1 + np.exp(-self.sum))
 		self.sum = 0
 
 	def calculate_error(self, result_expected):
-		self.error = self.result * (1- self.result) * (result_expected - self.result)
+		self.error = self.result * (1-self.result) * (result_expected - self.result)
 		#print(self.error)

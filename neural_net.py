@@ -9,14 +9,14 @@ from neuron import HiddenNeuron
 
 class NeuralNet:
 
-	def __init__(self, input_n, hidden_n, output_n, layers_n):
+	def __init__(self, input_n, hidden_n, output_n, layers_n, tx_learning, momentum):
 		#SETA AS CONSTANTES DA REDE NEURAL
 		self.NUMBER_INPUT_NEURONS = input_n
 		self.NUMBER_HIDDEN_NEURONS = hidden_n
 		self.NUMBER_OUTPUT_NEURONS = output_n
 		self.NUMBER_OF_LAYERS = layers_n
-		self.TX_LEARNING = 0.5
-		self.MOMENTUM = 0.9
+		self.TX_LEARNING = tx_learning
+		self.MOMENTUM = momentum
 		self._start_net();
 		print("Neural Start!...")
 
@@ -38,7 +38,7 @@ class NeuralNet:
 
 		self.hiddens_layers = [self.hidden_layer]
 		if self.NUMBER_OF_LAYERS > 1:
-			for j in range(0, self.NUMBER_OF_LAYERS):
+			for j in range(0, self.NUMBER_OF_LAYERS - 1):
 				new_layer = []
 				for i in range(0, self.NUMBER_HIDDEN_NEURONS):
 					hidden_neuron = HiddenNeuron()
@@ -63,7 +63,7 @@ class NeuralNet:
 	def propagation(self, data, prediction=False):
 		i = 0
 		#print(data)
-		print("synapse input layer")
+		#print("synapse input layer")
 		for input_neuron in self.input_layer:
 			#print("n(",i,")=",data[i],"\t", end="")
 			input_neuron.synapse(data[i])
@@ -71,10 +71,10 @@ class NeuralNet:
 			i+=1
 		#print("")
 		i = 0
-		print("hidden layer")
+		#print("hidden layer")
 		for hidden_layer in reversed(self.hiddens_layers):
 		#	print("========= HIDDEN LAYER ========= ",i)
-			print("-------------")
+		#	print("-------------")
 			for hidden_neuron in hidden_layer:
 		#		print("SUM=",hidden_neuron.sum)
 				hidden_neuron.transfer_unit()
@@ -85,13 +85,14 @@ class NeuralNet:
 		i = 0
 		g = 0
 		#print("========= OUTPUT LAYER =========")
+		#print("ouput layer")
 		for output_neuron in self.output_layer:
 			output_neuron.transfer_unit()
 			print("n(",i,")=",output_neuron.result,"\t", end="")
 			if(output_neuron.result > self.output_layer[g].result):
 				g = i
 			i+=1
-		#print("")
+		print("")
 
 		if(prediction == True):
 			return g
