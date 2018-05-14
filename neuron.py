@@ -19,8 +19,9 @@ class Neuron:
 
 class InputNeuron(Neuron):
 
-	def __init__(self):
-		self.weight = random.random()
+	def __init__(self, size):
+		self.z = np.zeros(size)
+		self.size = size
 
 	def summation_unit(self):
 		NotImplementedError()
@@ -28,107 +29,104 @@ class InputNeuron(Neuron):
 	def transfer_unit(self):
 		NotImplementedError()
 
-	def add_neurons(self, neurons):
-		self.neurons_connected = []
-		for neuron in neurons:
-			weight = random.random()
-			self.neurons_connected.append([weight, neuron])
+	def set_input(self, input):
+		self.z = np.array(input)
 
-	def synapse(self, input):
-		self.result = input
-		#print("W: ", end="")
-		for connection in self.neurons_connected:
-			weight = connection[0]
-			neuron = connection[1]
-		#	print("\t to neuron", neuron, " - ", input, " * ", weight)
-			neuron.summation_unit(weight, input)
-		#	print(weight,"\t", end="")
-		#print("")
+	def synapse(self):
+		#print("input ",self.z.shape)
+		#print(self.z)
+		self.next.synapse()
 
-	def calculate_error(self):
-		#print("W: ", end="")
-		sum_factor = 0
-		for connection in self.neurons_connected:
-			weight = connection[0]
-			neuron = connection[1]
-			sum_factor += weight * neuron.error
-			#print(round(weight,3)," ", end="")
-		#print("")
-		self.error = self.result * (1 - self.result) * sum_factor
+	def calculate_error(self, error):
+		pass
 
 
 	def update_weights(self, momentum, tx_learning):
-		for connection in self.neurons_connected:
-			weight = connection[0]
-			neuron = connection[1]
-			new_weight = weight+tx_learning*self.result*neuron.error
-			connection[0] = new_weight 
+		pass
 
 class HiddenNeuron(Neuron):
 
-	def __init__(self):
-		self.sum = 0
+	def __init__(self, size, prev):
+		self.size = size
+		self.prev = prev
+		self.prev.next = self
+		self.w = np.random.random((prev.size,self.size))
+		self.z = np.zeros(self.size)
 
 	def summation_unit(self, weight, data):
-		self.sum += (weight * data)
-		#print("\t\t\t#",weight,"*",data,"=",weight*data," - ",self.sum,"#")
-
+		pass
 	def transfer_unit(self):
-		#self.sum = np.clip(self.sum,-1000,1000)
-		self.result = 1.0 / (1.0 + np.exp(-(self.sum)))
-		#print("\ttransfer unit with activant value: ",self.sum, " ", self.result)
-		self.sum = 0
-
-
-	def add_neurons(self, neurons):
-		self.neurons_connected = []
-		for neuron in neurons:
-			weight = random.random()
-			self.neurons_connected.append([weight, neuron])
+		pass
 
 	def synapse(self):
-		#print("W: ", end="")
-		for connection in self.neurons_connected:
-			weight = connection[0]
-			neuron = connection[1]
-			neuron.summation_unit(weight, self.result)
-			#print(weight,"\t", end="")
-		#print("")
+		#print("hidden")
+		##print(self.prev.z)
+		#print(self.w)
+		r = self.prev.z.dot(self.w)
+		#print(r)
+		self.z = (1/(1+np.exp(-r)))
+		#print(self.z)
+		self.next.synapse()
 
-	def calculate_error(self):
-		#print("W: ", end="")
-		sum_factor = 0
-		for connection in self.neurons_connected:
-			weight = connection[0]
-			neuron = connection[1]
-			sum_factor += weight * neuron.error
-			#print(round(weight,3)," ", end="")
-		#print("")
-		self.error = self.result * (1 - self.result) * sum_factor
+	def calculate_error(self,error, tx_learning, momentum):
+		#print("error")
+		#print(error)
+		self.error = self.z * (1 - self.z) * error
+		#print(self.z)
+		#print(self.error)
+		#self.prev.calculate_error(self.w.dot(self.error))
 		#print(self.error)
 
 
 	def update_weights(self, momentum, tx_learning):
-		for connection in self.neurons_connected:
-			weight = connection[0]
-			neuron = connection[1]
-			new_weight = weight*momentum+tx_learning*self.result*neuron.error
-			connection[0] = new_weight
+		#print("update_weights - h")
+		#print(self.w)
+		#print(self.prev.z)
+		#print(self.error)
+		self.w = self.w * momentum
+		tmp = np.tile(self.prev.z, (self.error.size,1))
+		self.w = np.add(self.w,((np.transpose(tmp).dot(np.diag(self.error)))*tx_learning))
+		self.prev.update_weights(tx_learning, momentum)
+		#print(self.w)
 
 class OutputNeuron(Neuron):
 
-	def __init__(self):
-		self.sum = 0
+	def __init__(self, size, prev):
+		self.size = size
+		self.prev = prev
+		self.prev.next = self
+		self.w = np.random.random((prev.size,self.size))
+		self.z = np.zeros(self.size)
 
 	def summation_unit(self, weight, data):
-		self.sum = (weight * data) + self.sum
+		pass
+
+	def synapse(self):
+		#print("out")
+		#print(self.prev.z)
+		#print(self.w)
+		r = self.prev.z.dot(self.w)
+		#print(r)
+		self.z = (1/(1+np.exp(-r)))
+		#print(self.z)
 
 	def transfer_unit(self):
-		#self.sum = np.clip(self.sum,-1000,1000)
-		#self.result = self.sum
-		self.result = 1 / (1 + np.exp(-self.sum))
-		self.sum = 0
-
-	def calculate_error(self, result_expected):
-		self.error = self.result * (1-self.result) * (result_expected - self.result)
+		pass
+	def calculate_error(self, expected, tx_learning, momentum):
+		self.error = self.z * (1-self.z) * (expected - self.z)
 		#print(self.error)
+		#print(self.error)
+		#print(self.w.dot(self.error))
+		self.prev.calculate_error(self.w.dot(self.error), tx_learning, momentum)
+		self.update_weights(tx_learning, momentum)
+
+	def update_weights(self, tx_learning, momentum):
+		#print("update_weights")
+		#print(self.w)
+		#print(self.prev.z)
+		#print(self.error)
+		self.w = self.w * momentum
+		tmp = np.tile(self.prev.z, (self.error.size,1))
+		self.w = np.add(self.w,((np.transpose(tmp).dot(np.diag(self.error)))*tx_learning))
+		self.prev.update_weights(tx_learning, momentum)
+		#print(self.w)

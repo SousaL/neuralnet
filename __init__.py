@@ -3,101 +3,64 @@ import random
 import numpy as np
 
 instances = 4
-hidden = 200
+hidden = 6
 n_hidden = 1
 
 classes = 3
-
-tx_learning = 0.5
-momentum = 0.005
+epoch = 500
+tx_learning = 0.02
+momentum = 1
 
 dict = {'BRICKFACE':0,'SKY':1,'FOLIAGE':2,'CEMENT':3,'WINDOW':4,'PATH':5,'GRASS':6}
 dict = {'IRIS-SETOSA':0,'IRIS-VERSICOLOR':1,'IRIS-VIRGINICA':2}
 j = 0
 
 net = NeuralNet(instances, hidden, classes, n_hidden, tx_learning, momentum)
+data = []
+#net.propagation([20,10], prediction=True)
+#net.back_propagation(0)
+#
+#net.propagation([1,1], prediction=True)
+#net.back_propagation(1)
 
-f = open("out.txt", "w")
-for k in range(0, 50):
-    with open("bezdekIris.data.txt", "r") as filestream:
-        for line in filestream:
-            cl = line.split(",")
-            for i in range(0,instances):
-                cl[i] = float(cl[i])
-        #print(cl[-1])
-            cl[-1] = dict[cl[-1].strip('\n').upper()]
-        #print("\n\n")
-            p = net.propagation(cl, prediction=True)
-            net.back_propagation(cl[-1])
-            print("-- Interaction: ", j, " Expected - ",cl[-1], " - ", p,end="")
-        #input()
-            j+=1
-        #    f.write("input\n")
-        #    for neuron in net.input_layer:
-        #        for connection in neuron.neurons_connected:
-        #            f.write(str(connection[0]) + "\t")
-        #        f.write("\n")
 
-        #    for hidden_layer in reversed(net.hiddens_layers):
-        #        f.write("========= HIDDEN LAYER =========\n")
-        #        for neuron in hidden_layer:
-        #            for connection in neuron.neurons_connected:
-        #                f.write(str(connection) + "\t")
-        #            f.write("\n")
-        #print("")
-
-with open("data.txt", "r") as filestream:
+with open("iris.txt", "r") as filestream:
     for line in filestream:
         cl = line.split(",")
         for i in range(0,instances):
-            cl[i] = float(cl[i])
-        #print(cl[-1])
+            cl[i] = float(cl[i])#/1000
         cl[-1] = dict[cl[-1].strip('\n').upper()]
-        #print("\n\n")
-        p = net.propagation(cl, prediction=True)
-        #net.back_propagation(cl[-1])
-        print("## Interaction: ", j, " Expected - ",cl[-1], " - ", p, end = "")
+        data.append(cl)
+
+for k in range(0, epoch):
+    for line in data:
+        p = net.propagation(line[:-1], prediction=True)
+        print("-- Interaction: ", j, " Expected - ",line[-1], " - ", p, "\t", end="")
+        print(net.output_layer.z)
+        net.back_propagation(line[-1])
         #input()
         j+=1
-        #print("")
-"""
-with open("bezdekIris.data.txt", "r") as filestream:
+    if k % 100 == 0: print("-- Interaction: ", k)
+    #input()
+    #print(net.hiddens_layers[-1].w)
+    #print(net.output_layer.w)
+
+m = np.zeros((classes, classes))
+with open("iris_teste.txt", "r") as filestream:
     for line in filestream:
         cl = line.split(",")
-        for i in range(1,instances):
-            cl[i] = float(cl[i])
-        cl[0] = dict[cl[0]]
-        x = cl[0]
-        cl[-1] = float(cl[-1].strip('\n'))
-        cl.pop(0)
-        cl.append(x)
-        #print(cl)
-        #input()
-        #print("\n\n")
-        #input()
-        p = net.propagation(cl, prediction=True)
-        net.back_propagation(cl[-1])
-        print("-- Interaction: ", j, " Expected - ",cl[-1], " - ", p,end="")
+        for i in range(0,instances):
+            cl[i] = float(cl[i])#/1000
+        cl[-1] = dict[cl[-1].strip('\n').upper()]
+        p = net.propagation(cl[:-1], prediction=True)
+        print("## Interaction: ", j, " Expected - ",cl[-1], " - ", p, "\t", end="")
+        print(net.output_layer.z)
+        #print(net.output_layer.w)
+        m[cl[-1]][p] += 1
         j+=1
-        #print("")
-        #input()
-with open("segmentation.data.txt", "r") as filestream:
-    for line in filestream:
-        cl = line.split(",")
-        for i in range(1,instances):
-            cl[i] = float(cl[i])
-        cl[0] = dict[cl[0]]
-        x = cl[0]
-        cl[-1] = float(cl[-1].strip('\n'))
-        cl.pop(0)
-        cl.append(x)
-        #print(cl)
-        #input()
-        #print("\n\n")
-        #print("-- Interaction: ", j, " Expected - ",cl[-1], " ", end="")
-        #input()
-        p = net.propagation(cl, prediction=True)
-        print("Expected - ", cl[-1], " - ", p)
-        #net.back_propagation(cl[-1])
-        j+=1
-"""
+
+print("\n")
+for i in range(0, classes):
+    for j in range(0, classes):
+        print(m[i][j],"\t", end="")
+    print("")
