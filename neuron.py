@@ -37,7 +37,8 @@ class InputNeuron(Neuron):
 		#print(self.z)
 		self.next.synapse()
 
-	def calculate_error(self, error):
+	def calculate_error(self):
+		#self.factor_error = self.next.error.dot(np.transpose(self.next.w))
 		pass
 
 
@@ -68,13 +69,14 @@ class HiddenNeuron(Neuron):
 		#print(self.z)
 		self.next.synapse()
 
-	def calculate_error(self,error, tx_learning, momentum):
+	def calculate_error(self):
 		#print("error")
 		#print(error)
-		self.error = self.z * (1 - self.z) * error
+		self.factor_error = self.next.error.dot(np.transpose(self.next.w))
+		self.error = self.z * (1 - self.z) * self.factor_error
 		#print(self.z)
 		#print(self.error)
-		#self.prev.calculate_error(self.w.dot(self.error))
+		self.prev.calculate_error()
 		#print(self.error)
 
 
@@ -85,7 +87,8 @@ class HiddenNeuron(Neuron):
 		#print(self.error)
 		self.w = self.w * momentum
 		tmp = np.tile(self.prev.z, (self.error.size,1))
-		self.w = np.add(self.w,((np.transpose(tmp).dot(np.diag(self.error)))*tx_learning))
+		tmp = np.transpose(tmp).dot(np.diag(self.error))*tx_learning
+		self.w = np.add(self.w,tmp)
 		self.prev.update_weights(tx_learning, momentum)
 		#print(self.w)
 
@@ -114,10 +117,12 @@ class OutputNeuron(Neuron):
 		pass
 	def calculate_error(self, expected, tx_learning, momentum):
 		self.error = self.z * (1-self.z) * (expected - self.z)
+		#print(expected)
 		#print(self.error)
-		#print(self.error)
+		#print(self.z)
+		#input()
 		#print(self.w.dot(self.error))
-		self.prev.calculate_error(self.w.dot(self.error), tx_learning, momentum)
+		self.prev.calculate_error()
 		self.update_weights(tx_learning, momentum)
 
 	def update_weights(self, tx_learning, momentum):
@@ -127,6 +132,7 @@ class OutputNeuron(Neuron):
 		#print(self.error)
 		self.w = self.w * momentum
 		tmp = np.tile(self.prev.z, (self.error.size,1))
-		self.w = np.add(self.w,((np.transpose(tmp).dot(np.diag(self.error)))*tx_learning))
+		tmp = np.transpose(tmp).dot(np.diag(self.error))*tx_learning
+		self.w = np.add(self.w,tmp)
 		self.prev.update_weights(tx_learning, momentum)
 		#print(self.w)

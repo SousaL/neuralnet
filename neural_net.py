@@ -31,6 +31,12 @@ class NeuralNet:
 		self.hiddens_layers = []
 		self.hiddens_layers.append(hidden)
 
+		if(self.NUMBER_OF_LAYERS > 1):
+			for i in range(0, self.NUMBER_OF_LAYERS - 1):
+				hidden = HiddenNeuron(self.NUMBER_HIDDEN_NEURONS, self.hiddens_layers[-1])
+				self.hiddens_layers.append(hidden)
+
+
 		output = OutputNeuron(self.NUMBER_OUTPUT_NEURONS, self.hiddens_layers[-1])
 		self.output_layer = output
 
