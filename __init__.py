@@ -1,7 +1,12 @@
-from neural_net import NeuralNet
+import matplotlib.pyplot as plt
+import sys
 import random
 import numpy as np
-import sys
+import time
+from neural_net import NeuralNet
+import matplotlib.pyplot as plt
+
+
 
 instances = int(sys.argv[1])
 hidden = int(sys.argv[2])
@@ -12,7 +17,14 @@ tx_learning = float(sys.argv[4])
 momentum = float(sys.argv[5])
 epoch = int(sys.argv[6])
 
+plt.ion()
+plt.imshow(np.zeros((classes, classes)))
+plt.pause(1)
+
+
 dict = {'BRICKFACE':0,'SKY':1,'FOLIAGE':2,'CEMENT':3,'WINDOW':4,'PATH':5,'GRASS':6}
+
+
 #dict = {'IRIS-SETOSA':0,'IRIS-VERSICOLOR':1,'IRIS-VIRGINICA':2}
 j = 0
 
@@ -23,6 +35,8 @@ data = []
 #
 #net.propagation([1,1], prediction=True)
 #net.back_propagation(1)
+
+
 
 def status():
     print("+-----------------------------------------+")
@@ -67,6 +81,9 @@ def test():
                 print("---------------+",end="")
             print("")
         status()
+        plt.imshow(m)
+        plt.draw()
+        plt.pause(1)
 
 test()
 with open("treinamento.txt", "r") as filestream:
