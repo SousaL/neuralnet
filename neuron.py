@@ -33,16 +33,14 @@ class InputNeuron(Neuron):
 		self.z = np.array(input)
 
 	def synapse(self):
-		#print("input ",self.z.shape)
-		#print(self.z)
+		#print("Input neuron call synapse")
 		self.next.synapse()
 
 	def calculate_error(self):
-		#self.factor_error = self.next.error.dot(np.transpose(self.next.w))
 		pass
 
 
-	def update_weights(self, momentum, tx_learning):
+	def update_weights(self, tx_learning, momentum):
 		pass
 
 class HiddenNeuron(Neuron):
@@ -60,37 +58,39 @@ class HiddenNeuron(Neuron):
 		pass
 
 	def synapse(self):
-		#print("hidden")
-		##print(self.prev.z)
-		#print(self.w)
+		#print("In Hidden Synapse")
+		#print(self.prev.z, "*", self.w)
 		r = self.prev.z.dot(self.w)
-		#print(r)
 		self.z = (1/(1+np.exp(-r)))
-		#print(self.z)
+		#print("result...", r," and apply function activation", self.z)
+		#print("call next synapse")
 		self.next.synapse()
 
 	def calculate_error(self):
-		#print("error")
-		#print(error)
+
+		#print("Calcuating the error in Hidden layer")
 		self.factor_error = self.next.error.dot(np.transpose(self.next.w))
+		#print("Error of next layer...", self.next.error)
+		#print("Weights...", np.transpose(self.next.w))
+		#print("Results in dot...Factor error", self.factor_error)
+
 		self.error = self.z * (1 - self.z) * self.factor_error
-		#print(self.z)
-		#print(self.error)
+		#print("Results in error...", self.error)
 		self.prev.calculate_error()
-		#print(self.error)
 
 
-	def update_weights(self, momentum, tx_learning):
-		#print("update_weights - h")
-		#print(self.w)
-		#print(self.prev.z)
-		#print(self.error)
+	def update_weights(self, tx_learning, momentum):
+		#print("Update Weights in Hidden layer")
 		self.w = self.w * momentum
+		#print("Multiply w by momentum", self.w, momentum)
 		tmp = np.tile(self.prev.z, (self.error.size,1))
+		#print("Clonning the columns of z", self.prev.z," in ", self.error, " times")
+		#print("multiply the result tmp = ", tmp," by diag of error")
 		tmp = np.transpose(tmp).dot(np.diag(self.error))*tx_learning
+		#print("add the both")
 		self.w = np.add(self.w,tmp)
+		#print("the new Weights are... ", self.w)
 		self.prev.update_weights(tx_learning, momentum)
-		#print(self.w)
 
 class OutputNeuron(Neuron):
 
@@ -105,34 +105,35 @@ class OutputNeuron(Neuron):
 		pass
 
 	def synapse(self):
-		#print("out")
-		#print(self.prev.z)
-		#print(self.w)
+		#print("In Out synapse")
 		r = self.prev.z.dot(self.w)
-		#print(r)
+		#print(self.prev.z, "*", self.w, " = ", r)
 		self.z = (1/(1+np.exp(-r)))
-		#print(self.z)
+		#print("activion sig = ", self.z)
 
 	def transfer_unit(self):
 		pass
 	def calculate_error(self, expected, tx_learning, momentum):
+		#print("Calculating the error")
+		#print("Expected...", expected)
+		#print("Result...", self.z)
+		#print("Difference...", expected - self.z)
 		self.error = self.z * (1-self.z) * (expected - self.z)
-		#print(expected)
-		#print(self.error)
-		#print(self.z)
-		#input()
-		#print(self.w.dot(self.error))
+		#print("Error result in...", self.error)
 		self.prev.calculate_error()
 		self.update_weights(tx_learning, momentum)
 
 	def update_weights(self, tx_learning, momentum):
-		#print("update_weights")
-		#print(self.w)
-		#print(self.prev.z)
-		#print(self.error)
 		self.w = self.w * momentum
+		#print("Multipling Weights...", self.w)
+		#print("To momentum...", momentum)
 		tmp = np.tile(self.prev.z, (self.error.size,1))
+		#print("clone columns", tmp)
+		#print("multiply by diagonal of error", self.error, np.diag(self.error))
+		#print("and finally mult by learning rate", tx_learning)
+
 		tmp = np.transpose(tmp).dot(np.diag(self.error))*tx_learning
+		#print("resulting::", tmp)
 		self.w = np.add(self.w,tmp)
+		#print("add weights with result...", self.w)
 		self.prev.update_weights(tx_learning, momentum)
-		#print(self.w)

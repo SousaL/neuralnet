@@ -18,7 +18,7 @@ j = 0
 
 net = NeuralNet(instances, hidden, classes, n_hidden, tx_learning, momentum)
 data = []
-#net.propagation([20,10], prediction=True)
+#net.propagation([0,0,0], prediction=True)
 #net.back_propagation(0)
 #
 #net.propagation([1,1], prediction=True)
@@ -47,10 +47,10 @@ def test():
             #print("## Interaction: ", j, " Expected - ",cl[0], " - ", p, "\t", end="")
             #print(net.output_layer.z)
             #print(net.output_layer.w)
-            print("Expected - ",cl[-1], " - ", p, "\t", end="")
-            for k in range(0, classes):
-                print(net.output_layer.z[k],"\t", end="")
-            print("")
+            #print("Expected - ",cl[-1], " - ", p, "\t", end="")
+            #for k in range(0, classes):
+            #    print(net.output_layer.z[k],"\t", end="")
+            #print("")
             m[cl[-1]][p] += 1
             j+=1
 
@@ -87,6 +87,6 @@ for k in range(epoch):
         #    print(net.output_layer.z[t],"\t", end="")
         #print("")
         j+=1
-    if k % 1000 == 0: test()
+    if k % 100 == 0: test()
     if k % 100 == 0: print("-- Interaction: ", k)
     #input()
