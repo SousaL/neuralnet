@@ -49,7 +49,7 @@ class HiddenNeuron(Neuron):
 		self.size = size
 		self.prev = prev
 		self.prev.next = self
-		self.w = np.random.random((prev.size,self.size))
+		self.w = np.random.randint(-1,2,(prev.size,self.size))
 		self.z = np.zeros(self.size)
 
 	def summation_unit(self, weight, data):
@@ -98,7 +98,7 @@ class OutputNeuron(Neuron):
 		self.size = size
 		self.prev = prev
 		self.prev.next = self
-		self.w = np.random.random((prev.size,self.size))
+		self.w = np.random.randint(-1,2,(prev.size,self.size))
 		self.z = np.zeros(self.size)
 
 	def summation_unit(self, weight, data):
